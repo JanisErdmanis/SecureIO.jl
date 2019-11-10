@@ -19,7 +19,7 @@ key1 = "Password1"
 st1 = SecureTunnel(io,key1)
 
 key2 = "Password2"
-st2 = SecureTunnel(io,key2)
+st2 = SecureTunnel(st1,key2)
 
 msg = ("Hello","World")
 serialize(st2,msg,32)
