@@ -19,20 +19,16 @@ function SecureTunnel(socket,key)
     SecureTunnel(socket,enc,dec)
 end
 
-import Base.write
+send(s::TCPSocket,data::Array) = println(s,String(data))
 
-write(s::TCPSocket,data::Array) = println(s,String(data))
-
-function write(s::SecureTunnel,msg::Array) 
+function send(s::SecureTunnel,msg::Array) 
     msgenc = encrypt(s.enc,msg)
     write(s.socket,msgenc)
 end
 
-import Base.take!
+receive(s::TCPSocket) = Vector{UInt8}(readline(s, keep=true))[1:end-1]
 
-take!(s::TCPSocket) = Vector{UInt8}(readline(s, keep=true))[1:end-1]
-
-function take!(s::SecureTunnel)
+function receive(s::SecureTunnel)
     msgenc = take!(s.socket)
     deciphertext = decrypt(s.dec,msgenc)
     
@@ -41,7 +37,7 @@ end
 
 function serialize(s::SecureTunnel,msg,size)
     io = IOBuffer()
-    Serialization.serialize(io,msg)
+    serialize(io,msg)
     plaintext = String(take!(io))
     
     if size<length(plaintext)
@@ -50,19 +46,19 @@ function serialize(s::SecureTunnel,msg,size)
     
     paddedtext = add_padding_PKCS5(Vector{UInt8}(plaintext), size)
 
-    write(s,paddedtext)
+    send(s,paddedtext)
 end
 
 function deserialize(s::SecureTunnel)
-    deciphertext = take!(s)
+    deciphertext = receive(s)
     
     str = trim_padding_PKCS5(deciphertext)
 
     io = IOBuffer(str)
-    msg = Serialization.deserialize(io)
+    msg = deserialize(io)
     return msg
 end
 
-export SecureTunnel, serialize, deserialize #, write, take!
+export SecureTunnel, serialize, deserialize #, send, receive
 
 end # module
