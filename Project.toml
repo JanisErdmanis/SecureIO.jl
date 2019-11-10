@@ -7,3 +7,13 @@ version = "0.1.0"
 Nettle = "49dea1ee-f6fa-5aa6-9a11-8816cee7d4b9"
 Serialization = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
+
+[compat]
+julia = "1"
+Nettle = "0.4"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
