@@ -22,7 +22,7 @@ key2 = "Password2"
 st2 = SecureTunnel(st1,key2)
 
 msg = ("Hello","World")
-serialize(st2,msg,32)
+serialize(st2,msg,64)
 @test msg==deserialize(st2) 
 
 # Checking if TCP/IP sockets works
