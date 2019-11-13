@@ -20,7 +20,6 @@ function trimpadding(text::Vector{UInt8})
     return text[1:n]
 end
 
-
 struct SecureTunnel <: IO
     socket::IO
     enc::Encryptor
@@ -52,6 +51,13 @@ function receive(s::SecureTunnel)
     deciphertext = decrypt(s.dec,msgenc)
     return deciphertext
 end
+
+import Base.isopen
+isopen(s::SecureTunnel) = isopen(s.socket)
+
+import Base.close
+close(s::SecureTunnel) = close(s.socket)
+
 
 function serialize(s::SecureTunnel,msg,size)
     io = IOBuffer()

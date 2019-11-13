@@ -43,3 +43,7 @@ serialize(stserver,msg,64)
 
 stslave = SecureTunnel(slavesocket,key)
 @test msg==deserialize(stslave)
+
+@test isopen(stslave)==true
+close(stslave)
+@test isopen(stslave)==false
