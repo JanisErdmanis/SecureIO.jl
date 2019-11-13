@@ -58,12 +58,16 @@ isopen(s::SecureTunnel) = isopen(s.socket)
 import Base.close
 close(s::SecureTunnel) = close(s.socket)
 
-
-function serialize(s::SecureTunnel,msg,size)
+function getstr(msg)
     io = IOBuffer()
     Serialization.serialize(io,msg)
     plaintext = String(take!(io))
-    
+    return plaintext
+end
+
+function serialize(s::SecureTunnel,msg,size)
+    plaintext = getstr(msg)
+
     if size - 2 < length(plaintext)
         error("Message with length $(length(plaintext)) does not fit in $size - 2 bytes")
     end
@@ -73,6 +77,23 @@ function serialize(s::SecureTunnel,msg,size)
 
     send(s,paddedtext)
 end
+
+
+function serialize(s::SecureTunnel,msg)
+    plaintext = getstr(msg)
+
+    n = length(plaintext)
+
+    if mod(n+2,16)==0
+        size = n+2
+    else
+        size = (div(n+2,16) + 1)*16
+    end
+
+    paddedtext = addpadding(Vector{UInt8}(plaintext), size)
+    send(s,paddedtext)
+end
+
 
 function deserialize(s::SecureTunnel)
     deciphertext = receive(s)
