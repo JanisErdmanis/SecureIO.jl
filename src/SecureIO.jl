@@ -36,7 +36,7 @@ function SecureTunnel(socket,key)
 end
 
 send(s::IO,data::Array) = write(s,data)
-send(s::TCPSocket,data::Array) = println(s,String(data))
+send(s::TCPSocket,data::Array) = Serialization.serialize(s,data)
 
 function send(s::SecureTunnel,msg::Array) 
     msgenc = encrypt(s.enc,msg)
@@ -44,7 +44,7 @@ function send(s::SecureTunnel,msg::Array)
 end
 
 receive(s::IO) = take!(s)
-receive(s::TCPSocket) = Vector{UInt8}(readline(s, keep=true))[1:end-1]
+receive(s::TCPSocket) = Serialization.deserialize(s)
 
 function receive(s::SecureTunnel)
     msgenc = receive(s.socket)
