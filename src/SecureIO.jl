@@ -1,8 +1,11 @@
 module SecureIO
 
-using Nettle
+### A temporary solution
 import Sockets.TCPSocket
 import Serialization
+include("multiplexers.jl")
+
+using Nettle
 
 function addpadding(text::Vector{UInt8},size)
     # Only last two bytes are used to encode the padding boundary. That limits the possible size.
@@ -37,6 +40,7 @@ end
 
 send(s::IO,data::Array) = write(s,data)
 send(s::TCPSocket,data::Array) = Serialization.serialize(s,data)
+send(s::Line,data::Array) = serialize(s,data)
 
 function send(s::SecureTunnel,msg::Array) 
     msgenc = encrypt(s.enc,msg)
@@ -45,6 +49,7 @@ end
 
 receive(s::IO) = take!(s)
 receive(s::TCPSocket) = Serialization.deserialize(s)
+receive(s::Line) = deserialize(s)
 
 function receive(s::SecureTunnel)
     msgenc = receive(s.socket)
