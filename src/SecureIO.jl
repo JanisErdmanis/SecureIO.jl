@@ -5,7 +5,7 @@ import Sockets.TCPSocket
 import Serialization
 
 function addpadding(text::Vector{UInt8},size)
-    # Only tow last bytes are used to encode the padding boundary. That limits the possible size.
+    # Only last two bytes are used to encode the padding boundary. That limits the possible size.
     @assert length(text) + 2 <= size <= 2^16
     
     endbytes = reinterpret(UInt8, Int16[length(text)])
@@ -61,7 +61,7 @@ close(s::SecureTunnel) = close(s.socket)
 function getstr(msg)
     io = IOBuffer()
     Serialization.serialize(io,msg)
-    plaintext = String(take!(io))
+    plaintext = take!(io)
     return plaintext
 end
 
@@ -73,7 +73,7 @@ function serialize(s::SecureTunnel,msg,size)
     end
     
     #paddedtext = add_padding_PKCS5(Vector{UInt8}(plaintext), size)
-    paddedtext = addpadding(Vector{UInt8}(plaintext), size)
+    paddedtext = addpadding(plaintext, size)
 
     send(s,paddedtext)
 end
@@ -89,8 +89,10 @@ function serialize(s::SecureTunnel,msg)
     else
         size = (div(n+2,16) + 1)*16
     end
+    
+    # @show n, size
 
-    paddedtext = addpadding(Vector{UInt8}(plaintext), size)
+    paddedtext = addpadding(plaintext, size)
     send(s,paddedtext)
 end
 
