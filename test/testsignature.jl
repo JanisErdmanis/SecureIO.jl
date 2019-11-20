@@ -1,3 +1,5 @@
+# A test for more abstract types
+
 using SecureIO
 using CryptoGroups
 using CryptoSignatures
