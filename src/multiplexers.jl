@@ -1,5 +1,5 @@
-serialize(socket::TCPSocket,msg) = Serialization.serialize(socket,msg)
-deserialize(socket::TCPSocket) = Serialization.deserialize(socket)
+# serialize(socket::TCPSocket,msg) = Serialization.serialize(socket,msg)
+# deserialize(socket::TCPSocket) = Serialization.deserialize(socket)
 
 struct Line <: IO
     socket::IO

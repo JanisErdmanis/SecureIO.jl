@@ -7,6 +7,10 @@ include("multiplexers.jl")
 
 using Nettle
 
+# SecureStream
+# Is buffer a stram?
+# Would SecureSerializer be a better name. 
+
 struct SecureTunnel <: IO
     socket::IO
     enc::Encryptor
