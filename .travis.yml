@@ -1,8 +1,6 @@
 language: julia
 os:
   - linux
-  - windows
-  - osx
 julia:
-  - 1.2
+  - 1.3
 
