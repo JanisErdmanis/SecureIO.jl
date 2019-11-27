@@ -1,9 +1,15 @@
 module SecureIO
 
-### A temporary solution
+### This code does not belong here
+
 import Sockets.TCPSocket
 import Serialization
 include("multiplexers.jl")
+
+serialize(socket::TCPSocket,msg) = Serialization.serialize(socket,msg)
+deserialize(socket::TCPSocket) = Serialization.deserialize(socket)
+
+###
 
 using Nettle
 
@@ -28,7 +34,6 @@ isopen(s::SecureSerializer) = isopen(s.socket)
 import Base.close
 close(s::SecureSerializer) = close(s.socket)
 
-
 function addpadding(text::Vector{UInt8},size)
     # Only last two bytes are used to encode the padding boundary. That limits the possible size.
     @assert length(text) + 2 <= size <= 2^16
@@ -51,9 +56,6 @@ function getstr(msg)
     plaintext = take!(io)
     return plaintext
 end
-
-serialize(socket::TCPSocket,msg) = Serialization.serialize(socket,msg)
-deserialize(socket::TCPSocket) = Serialization.deserialize(socket)
 
 serialize(s::IOBuffer,data::Array) = write(s,data)
 deserialize(s::IOBuffer) = take!(s)
