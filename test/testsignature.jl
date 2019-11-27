@@ -17,10 +17,10 @@ key = "Password"
 G = CryptoGroups.MODP160Group()
 user = Signer(G)
 
-stserver = SecureTunnel(serversocket,key)
+stserver = SecureSerializer(serversocket,key)
 #serialize(stserver,user,1024)
 serialize(stserver,user)
 
-stslave = SecureTunnel(slavesocket,key)
+stslave = SecureSerializer(slavesocket,key)
 
 receiveduser = deserialize(stslave)

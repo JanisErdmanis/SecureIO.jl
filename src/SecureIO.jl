@@ -7,30 +7,26 @@ include("multiplexers.jl")
 
 using Nettle
 
-# SecureStream
-# Is buffer a stram?
-# Would SecureSerializer be a better name. 
-
-struct SecureTunnel <: IO
+struct SecureSerializer <: IO
     socket::IO
     enc::Encryptor
     dec::Decryptor
 end
 
-function SecureTunnel(socket,key)
+function SecureSerializer(socket,key)
     
     key32 = hexdigest("sha256", "$key")[1:32]
     enc = Encryptor("AES256", key32)
     dec = Decryptor("AES256", key32)
     
-    SecureTunnel(socket,enc,dec)
+    SecureSerializer(socket,enc,dec)
 end
 
 import Base.isopen
-isopen(s::SecureTunnel) = isopen(s.socket)
+isopen(s::SecureSerializer) = isopen(s.socket)
 
 import Base.close
-close(s::SecureTunnel) = close(s.socket)
+close(s::SecureSerializer) = close(s.socket)
 
 
 function addpadding(text::Vector{UInt8},size)
@@ -56,16 +52,13 @@ function getstr(msg)
     return plaintext
 end
 
-
 serialize(socket::TCPSocket,msg) = Serialization.serialize(socket,msg)
 deserialize(socket::TCPSocket) = Serialization.deserialize(socket)
-
 
 serialize(s::IOBuffer,data::Array) = write(s,data)
 deserialize(s::IOBuffer) = take!(s)
 
-
-function serialize(s::SecureTunnel,msg,size)
+function serialize(s::SecureSerializer,msg,size)
     plaintext = getstr(msg)
 
     if size - 2 < length(plaintext)
@@ -79,7 +72,7 @@ function serialize(s::SecureTunnel,msg,size)
     serialize(s.socket,msgenc)
 end
 
-function serialize(s::SecureTunnel,msg)
+function serialize(s::SecureSerializer,msg)
     plaintext = getstr(msg)
 
     n = length(plaintext)
@@ -95,7 +88,7 @@ function serialize(s::SecureTunnel,msg)
     serialize(s.socket,msgenc)
 end
 
-function deserialize(s::SecureTunnel)
+function deserialize(s::SecureSerializer)
     ciphertext = deserialize(s.socket)
     deciphertext = decrypt(s.dec,ciphertext)
     
@@ -107,6 +100,6 @@ function deserialize(s::SecureTunnel)
     return msg
 end
 
-export SecureTunnel, serialize, deserialize
+export SecureSerializer, serialize, deserialize
 
 end # module

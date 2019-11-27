@@ -11,14 +11,14 @@ N = 2
         try
             @show "Router"
             serversocket = accept(routers)
-            secureserversocket = SecureTunnel(serversocket,key)
+            secureserversocket = SecureSerializer(serversocket,key)
 
             lines = [Line(secureserversocket,i) for i in 1:N]
             task = @async route(lines,secureserversocket)
 
             susersockets = []
             for i in 1:N
-                push!(susersockets,SecureTunnel(lines[i],key))
+                push!(susersockets,SecureSerializer(lines[i],key))
             end
 
             for i in 1:N
@@ -39,13 +39,13 @@ N = 2
         try 
             @show "Server"
             routersocket = connect(2001)
-            secureroutersocket = SecureTunnel(routersocket,key)
+            secureroutersocket = SecureSerializer(routersocket,key)
             
             usersockets = IO[]
 
             while length(usersockets)<N
                 socket = accept(servers)
-                push!(usersockets,SecureTunnel(socket,key))
+                push!(usersockets,SecureSerializer(socket,key))
             end
 
             route(usersockets,secureroutersocket)
@@ -57,9 +57,9 @@ N = 2
     @async let
         @show "User 1"
         usersocket = connect(2000)
-        securesocket = SecureTunnel(usersocket,key)
+        securesocket = SecureSerializer(usersocket,key)
 
-        sroutersocket = SecureTunnel(securesocket,key)
+        sroutersocket = SecureSerializer(securesocket,key)
         @show deserialize(sroutersocket)
         serialize(sroutersocket,"A scuere msg from user 1")
     end
@@ -67,9 +67,9 @@ N = 2
     @async let
         @show "User 2"
         usersocket = connect(2000)
-        securesocket = SecureTunnel(usersocket,key)
+        securesocket = SecureSerializer(usersocket,key)
         
-        sroutersocket = SecureTunnel(securesocket,key)
+        sroutersocket = SecureSerializer(securesocket,key)
         @show deserialize(sroutersocket)
         serialize(sroutersocket,"A scuere msg from user 2")
     end
