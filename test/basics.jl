@@ -2,6 +2,10 @@ using SecureIO
 using Sockets
 using Test
 
+import Serialization
+SecureIO.serialize(io::Union{TCPSocket,IOBuffer},msg) = Serialization.serialize(io,msg)
+SecureIO.deserialize(io::Union{TCPSocket,IOBuffer}) = Serialization.deserialize(io)
+
 io = IOBuffer()
 
 key = "Password"

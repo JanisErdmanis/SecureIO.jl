@@ -1,6 +1,20 @@
 using SecureIO
-using SecureIO: route, Line
 using Sockets
+
+import Sockets.TCPSocket
+import SecureIO: serialize, deserialize
+import Serialization
+
+serialize(io::Union{TCPSocket,IOBuffer},msg) = Serialization.serialize(io,msg)
+deserialize(io::Union{TCPSocket,IOBuffer}) = Serialization.deserialize(io)
+
+import Multiplexers: Line, route
+
+import Multiplexers
+serialize(io::Line,msg) = Multiplexers.serialize(io,msg)
+deserialize(io::Line) = Multiplexers.deserialize(io)
+Multiplexers.serialize(io::SecureSerializer,msg) = serialize(io,msg)
+Multiplexers.deserialize(io::SecureSerializer) = deserialize(io)
 
 key = 12434434
 N = 2

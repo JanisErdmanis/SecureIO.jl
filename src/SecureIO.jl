@@ -1,20 +1,9 @@
 module SecureIO
 
-### This code does not belong here
-
-import Sockets.TCPSocket
-import Serialization
-include("multiplexers.jl")
-
-serialize(socket::TCPSocket,msg) = Serialization.serialize(socket,msg)
-deserialize(socket::TCPSocket) = Serialization.deserialize(socket)
-
-###
-
 using Nettle
 
-struct SecureSerializer <: IO
-    socket::IO
+struct SecureSerializer{T} <: IO where T<:IO
+    socket::T
     enc::Encryptor
     dec::Decryptor
 end
@@ -24,6 +13,9 @@ function SecureSerializer(socket,key)
     key32 = hexdigest("sha256", "$key")[1:32]
     enc = Encryptor("AES256", key32)
     dec = Decryptor("AES256", key32)
+
+    @assert hasmethod(serialize,(typeof(socket), Any))
+    @assert hasmethod(deserialize,(typeof(socket),))
     
     SecureSerializer(socket,enc,dec)
 end
@@ -52,13 +44,16 @@ end
 
 function getstr(msg)
     io = IOBuffer()
-    Serialization.serialize(io,msg)
+    #Serialization.serialize(io,msg)
+    serialize(io,msg)
+    #serialize(io,msg)
     plaintext = take!(io)
     return plaintext
 end
 
-serialize(s::IOBuffer,data::Array) = write(s,data)
-deserialize(s::IOBuffer) = take!(s)
+### So I have two serialize and two deserialize methods for IOBuffer. 
+#serialize(s::IOBuffer,data::Array) = write(s,data)
+#deserialize(s::IOBuffer) = take!(s)
 
 function serialize(s::SecureSerializer,msg,size)
     plaintext = getstr(msg)
@@ -91,14 +86,60 @@ function serialize(s::SecureSerializer,msg)
 end
 
 function deserialize(s::SecureSerializer)
-    ciphertext = deserialize(s.socket)
+    ciphertext = deserialize(s.socket) ### If s.socket is a buffer. 
     deciphertext = decrypt(s.dec,ciphertext)
     
     #str = trim_padding_PKCS5(deciphertext)
     str = trimpadding(deciphertext)
 
     io = IOBuffer(str)
-    msg = Serialization.deserialize(io)
+    msg = deserialize(io)
+    return msg
+end
+
+### Implementations for the buffers. Perhaps one could use generated functions to shorten the code.
+
+function serialize(s::SecureSerializer{IOBuffer},msg,size)
+    plaintext = getstr(msg)
+
+    if size - 2 < length(plaintext)
+        error("Message with length $(length(plaintext)) does not fit in $size - 2 bytes")
+    end
+    
+    #paddedtext = add_padding_PKCS5(Vector{UInt8}(plaintext), size)
+    paddedtext = addpadding(plaintext, size)
+    
+    msgenc = encrypt(s.enc,paddedtext)
+
+    write(s.socket,msgenc)
+end
+
+function serialize(s::SecureSerializer{IOBuffer},msg)
+    plaintext = getstr(msg)
+
+    n = length(plaintext)
+
+    if mod(n+2,16)==0
+        size = n+2
+    else
+        size = (div(n+2,16) + 1)*16
+    end
+
+    paddedtext = addpadding(plaintext, size)
+    msgenc = encrypt(s.enc,paddedtext)
+
+    write(s.socket,msgenc)
+end
+
+function deserialize(s::SecureSerializer{IOBuffer})
+    ciphertext = take!(s.socket)
+    deciphertext = decrypt(s.dec,ciphertext)
+    
+    #str = trim_padding_PKCS5(deciphertext)
+    str = trimpadding(deciphertext)
+
+    io = IOBuffer(str)
+    msg = deserialize(io)
     return msg
 end
 
