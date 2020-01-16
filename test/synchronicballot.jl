@@ -5,7 +5,7 @@ import Sockets.TCPSocket
 import SecureIO: serialize, deserialize
 import Serialization
 
-import Multiplexers: Line, route, forward
+import Multiplexers: Multiplexer, Line
 
 import Multiplexers
 Multiplexers.serialize(io::SecureSerializer,msg) = serialize(io,msg)
@@ -26,13 +26,12 @@ N = 2
             @show "Router"
             serversocket = Socket(accept(routers))
             secureserversocket = SecureSerializer(serversocket,key)
-
-            lines = Line[Line(secureserversocket,i) for i in 1:N]
-            task = @async route(lines,secureserversocket) ### this is the second place
+            
+            mux = Multiplexer(secureserversocket,N)
 
             susersockets = []
             for i in 1:N
-                push!(susersockets,SecureSerializer(Socket(lines[i]),key))
+                push!(susersockets,SecureSerializer(Socket(mux.lines[i]),key))
             end
 
             for i in 1:N
@@ -43,9 +42,7 @@ N = 2
                 @show deserialize(susersockets[i])
             end
             
-            serialize(secureserversocket,:Terminate)
-            
-            wait(task)
+            close(mux)
         finally
             close(routers)
         end
@@ -65,7 +62,8 @@ N = 2
                 push!(usersockets,SecureSerializer(socket,key))
             end
 
-            forward(usersockets,secureroutersocket) ### This is one of the places
+            mux = Multiplexer(secureroutersocket,usersockets)
+            wait(mux)
         finally
             close(servers)
         end
