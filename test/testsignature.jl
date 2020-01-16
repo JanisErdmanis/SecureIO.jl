@@ -5,11 +5,15 @@ using CryptoGroups
 using CryptoSignatures
 using Sockets
 
+import SecureIO.Socket
+import Serialization
+Socket(socket::TCPSocket) = Socket(socket,Serialization.serialize,Serialization.deserialize) 
+
 server = listen(2000)
 
 @sync begin
-    @async global serversocket = accept(server)
-    global slavesocket = connect(2000)
+    @async global serversocket = Socket(accept(server))
+    global slavesocket = Socket(connect(2000))
 end
 
 key = "Password"

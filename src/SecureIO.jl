@@ -2,8 +2,26 @@ module SecureIO
 
 using Nettle
 
-struct SecureSerializer{T} <: IO where T<:IO
-    socket::T
+### Needed for some internals. Will remove that soon.
+import Serialization
+
+struct Socket <: IO
+    socket
+    serialize#::Function
+    deserialize#::Function
+end
+
+serialize(socket::Socket,x) = socket.serialize(socket.socket,x)
+deserialize(socket::Socket) = socket.deserialize(socket.socket)
+
+import Base.isopen
+isopen(socket::Socket) = isopen(socket.socket)
+
+import Base.close
+close(socket::Socket) = close(socket.socket)
+
+struct SecureSerializer <: IO
+    socket
     enc::Encryptor
     dec::Decryptor
 end
@@ -45,7 +63,7 @@ end
 function getstr(msg)
     io = IOBuffer()
     #Serialization.serialize(io,msg)
-    serialize(io,msg)
+    Serialization.serialize(io,msg)
     #serialize(io,msg)
     plaintext = take!(io)
     return plaintext
@@ -93,56 +111,10 @@ function deserialize(s::SecureSerializer)
     str = trimpadding(deciphertext)
 
     io = IOBuffer(str)
-    msg = deserialize(io)
+    msg = Serialization.deserialize(io)
     return msg
 end
 
-### Implementations for the buffers. Perhaps one could use generated functions to shorten the code.
-
-function serialize(s::SecureSerializer{IOBuffer},msg,size)
-    plaintext = getstr(msg)
-
-    if size - 2 < length(plaintext)
-        error("Message with length $(length(plaintext)) does not fit in $size - 2 bytes")
-    end
-    
-    #paddedtext = add_padding_PKCS5(Vector{UInt8}(plaintext), size)
-    paddedtext = addpadding(plaintext, size)
-    
-    msgenc = encrypt(s.enc,paddedtext)
-
-    write(s.socket,msgenc)
-end
-
-function serialize(s::SecureSerializer{IOBuffer},msg)
-    plaintext = getstr(msg)
-
-    n = length(plaintext)
-
-    if mod(n+2,16)==0
-        size = n+2
-    else
-        size = (div(n+2,16) + 1)*16
-    end
-
-    paddedtext = addpadding(plaintext, size)
-    msgenc = encrypt(s.enc,paddedtext)
-
-    write(s.socket,msgenc)
-end
-
-function deserialize(s::SecureSerializer{IOBuffer})
-    ciphertext = take!(s.socket)
-    deciphertext = decrypt(s.dec,ciphertext)
-    
-    #str = trim_padding_PKCS5(deciphertext)
-    str = trimpadding(deciphertext)
-
-    io = IOBuffer(str)
-    msg = deserialize(io)
-    return msg
-end
-
-export SecureSerializer, serialize, deserialize
+export SecureSerializer, serialize, deserialize, Socket
 
 end # module
