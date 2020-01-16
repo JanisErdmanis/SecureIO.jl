@@ -2,6 +2,10 @@ module SecureIO
 
 using Nettle
 
+### One might also want to get rid of this one. Both packages could extend Base.write and Base.read. 
+import Multiplexers.serialize
+import Multiplexers.deserialize
+
 ### Needed for some internals. Will remove that soon.
 import Serialization
 

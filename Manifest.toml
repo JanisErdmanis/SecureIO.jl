@@ -57,6 +57,11 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 [[Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
+[[Multiplexers]]
+git-tree-sha1 = "fd74ebce2d5a06ed7344e84b1c7b43f617c7f594"
+uuid = "d8f48be2-8af9-45f0-b400-11a6372d221d"
+version = "0.2.0"
+
 [[Nettle]]
 deps = ["BinDeps", "BinaryProvider", "Libdl", "Test"]
 git-tree-sha1 = "f57e8e907faab4f55f9f164313a633509ac83e2c"

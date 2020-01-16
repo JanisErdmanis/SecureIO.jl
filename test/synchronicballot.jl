@@ -1,20 +1,12 @@
 using SecureIO
+using Multiplexers
 using Sockets
 
+# Setting up how foreign sockets should be dealt with for SecureIO
 import Sockets.TCPSocket
-import SecureIO: serialize, deserialize
 import Serialization
-
-import Multiplexers: Multiplexer, Line
-
-import Multiplexers
-Multiplexers.serialize(io::SecureSerializer,msg) = serialize(io,msg)
-Multiplexers.deserialize(io::SecureSerializer) = deserialize(io)
-
 import SecureIO.Socket
-import Serialization
 Socket(socket::TCPSocket) = Socket(socket,Serialization.serialize,Serialization.deserialize) 
-Socket(socket::Line) = Socket(socket,Multiplexers.serialize,Multiplexers.deserialize) 
 
 key = 12434434
 N = 2
@@ -31,7 +23,7 @@ N = 2
 
             susersockets = []
             for i in 1:N
-                push!(susersockets,SecureSerializer(Socket(mux.lines[i]),key))
+                push!(susersockets,SecureSerializer(mux.lines[i],key))
             end
 
             for i in 1:N
