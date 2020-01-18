@@ -12,7 +12,7 @@ Socket(socket::TCPSocket) = Socket(socket,Serialization.serialize,Serialization.
 io = Socket(IOBuffer())
 
 key = "Password"
-st = SecureSerializer(io,key)
+st = SecureSocket(io,key)
 
 msg = ("Hello","World")
 serialize(st,msg,32)
@@ -23,10 +23,10 @@ serialize(st,msg,32)
 io = Socket(IOBuffer())
 
 key1 = "Password1"
-st1 = SecureSerializer(io,key1)
+st1 = SecureSocket(io,key1)
 
 key2 = "Password2"
-st2 = SecureSerializer(st1,key2)
+st2 = SecureSocket(st1,key2)
 
 msg = ("Hello","World")
 serialize(st2,msg,64)
@@ -45,10 +45,10 @@ key = "Password"
 
 msg = ("Hello","World")
 
-stserver = SecureSerializer(serversocket,key)
+stserver = SecureSocket(serversocket,key)
 serialize(stserver,msg,64)
 
-stslave = SecureSerializer(slavesocket,key)
+stslave = SecureSocket(slavesocket,key)
 @test msg==deserialize(stslave)
 
 # Let's now test asyncchronicity

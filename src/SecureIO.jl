@@ -24,13 +24,13 @@ isopen(socket::Socket) = isopen(socket.socket)
 import Base.close
 close(socket::Socket) = close(socket.socket)
 
-struct SecureSerializer <: IO
+struct SecureSocket <: IO
     socket
     enc::Encryptor
     dec::Decryptor
 end
 
-function SecureSerializer(socket,key)
+function SecureSocket(socket,key)
     
     key32 = hexdigest("sha256", "$key")[1:32]
     enc = Encryptor("AES256", key32)
@@ -39,14 +39,14 @@ function SecureSerializer(socket,key)
     @assert hasmethod(serialize,(typeof(socket), Any))
     @assert hasmethod(deserialize,(typeof(socket),))
     
-    SecureSerializer(socket,enc,dec)
+    SecureSocket(socket,enc,dec)
 end
 
 import Base.isopen
-isopen(s::SecureSerializer) = isopen(s.socket)
+isopen(s::SecureSocket) = isopen(s.socket)
 
 import Base.close
-close(s::SecureSerializer) = close(s.socket)
+close(s::SecureSocket) = close(s.socket)
 
 function addpadding(text::Vector{UInt8},size)
     # Only last two bytes are used to encode the padding boundary. That limits the possible size.
@@ -71,7 +71,7 @@ function getstr(msg)
     return plaintext
 end
 
-function serialize(s::SecureSerializer,msg,size)
+function serialize(s::SecureSocket,msg,size)
     plaintext = getstr(msg)
 
     if size - 2 < length(plaintext)
@@ -85,7 +85,7 @@ function serialize(s::SecureSerializer,msg,size)
     serialize(s.socket,msgenc)
 end
 
-function serialize(s::SecureSerializer,msg)
+function serialize(s::SecureSocket,msg)
     plaintext = getstr(msg)
 
     n = length(plaintext)
@@ -101,7 +101,7 @@ function serialize(s::SecureSerializer,msg)
     serialize(s.socket,msgenc)
 end
 
-function deserialize(s::SecureSerializer)
+function deserialize(s::SecureSocket)
     ciphertext = deserialize(s.socket) ### If s.socket is a buffer. 
     deciphertext = decrypt(s.dec,ciphertext)
     
@@ -113,6 +113,6 @@ function deserialize(s::SecureSerializer)
     return msg
 end
 
-export Socket, SecureSerializer, serialize, deserialize
+export Socket, SecureSocket, serialize, deserialize
 
 end # module

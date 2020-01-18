@@ -21,10 +21,10 @@ key = "Password"
 G = CryptoGroups.MODP160Group()
 user = Signer(G)
 
-stserver = SecureSerializer(serversocket,key)
+stserver = SecureSocket(serversocket,key)
 #serialize(stserver,user,1024)
 serialize(stserver,user)
 
-stslave = SecureSerializer(slavesocket,key)
+stslave = SecureSocket(slavesocket,key)
 
 receiveduser = deserialize(stslave)

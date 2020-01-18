@@ -2,7 +2,7 @@
 include("basics.jl")
 
 # An application for shared ballot
-# include("sharedballot.jl")
+include("synchronicballot.jl")
 
 
 

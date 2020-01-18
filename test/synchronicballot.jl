@@ -6,8 +6,8 @@ import Sockets.TCPSocket
 import Serialization
 
 # The part necessary to interact with a foreign sockets. 
-import SecureIO.SecureSerializer
-SecureSerializer(socket::TCPSocket,key) = SecureSerializer(Socket(socket,Serialization.serialize,Serialization.deserialize),key)
+import SecureIO.SecureSocket
+SecureSocket(socket::TCPSocket,key) = SecureSocket(Socket(socket,Serialization.serialize,Serialization.deserialize),key)
 
 key = 12434434
 N = 2
@@ -18,13 +18,13 @@ N = 2
         try
             @show "Router"
             serversocket = accept(routers)
-            secureserversocket = SecureSerializer(serversocket,key)
+            secureserversocket = SecureSocket(serversocket,key)
             
             mux = Multiplexer(secureserversocket,N)
 
             susersockets = []
             for i in 1:N
-                push!(susersockets,SecureSerializer(mux.lines[i],key))
+                push!(susersockets,SecureSocket(mux.lines[i],key))
             end
 
             for i in 1:N
@@ -46,13 +46,13 @@ N = 2
         try 
             @show "Server"
             routersocket = connect(2001)
-            secureroutersocket = SecureSerializer(routersocket,key)
+            secureroutersocket = SecureSocket(routersocket,key)
             
             usersockets = IO[]
 
             while length(usersockets)<N
                 socket = accept(servers)
-                push!(usersockets,SecureSerializer(socket,key))
+                push!(usersockets,SecureSocket(socket,key))
             end
 
             mux = Multiplexer(secureroutersocket,usersockets)
@@ -65,9 +65,9 @@ N = 2
     @async let
         @show "User 1"
         usersocket = connect(2000)
-        securesocket = SecureSerializer(usersocket,key)
+        securesocket = SecureSocket(usersocket,key)
 
-        sroutersocket = SecureSerializer(securesocket,key)
+        sroutersocket = SecureSocket(securesocket,key)
         @show deserialize(sroutersocket)
         serialize(sroutersocket,"A scuere msg from user 1")
 
@@ -78,9 +78,9 @@ N = 2
     @async let
         @show "User 2"
         usersocket = connect(2000)
-        securesocket = SecureSerializer(usersocket,key)
+        securesocket = SecureSocket(usersocket,key)
         
-        sroutersocket = SecureSerializer(securesocket,key)
+        sroutersocket = SecureSocket(securesocket,key)
         @show deserialize(sroutersocket)
         serialize(sroutersocket,"A scuere msg from user 2")
 
