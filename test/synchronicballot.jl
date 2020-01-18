@@ -2,11 +2,12 @@ using SecureIO
 using Multiplexers
 using Sockets
 
-# Setting up how foreign sockets should be dealt with for SecureIO
 import Sockets.TCPSocket
 import Serialization
-import SecureIO.Socket
-Socket(socket::TCPSocket) = Socket(socket,Serialization.serialize,Serialization.deserialize) 
+
+# The part necessary to interact with a foreign sockets. 
+import SecureIO.SecureSerializer
+SecureSerializer(socket::TCPSocket,key) = SecureSerializer(Socket(socket,Serialization.serialize,Serialization.deserialize),key)
 
 key = 12434434
 N = 2
@@ -16,7 +17,7 @@ N = 2
         routers = listen(2001)
         try
             @show "Router"
-            serversocket = Socket(accept(routers))
+            serversocket = accept(routers)
             secureserversocket = SecureSerializer(serversocket,key)
             
             mux = Multiplexer(secureserversocket,N)
@@ -44,13 +45,13 @@ N = 2
         servers = listen(2000)
         try 
             @show "Server"
-            routersocket = Socket(connect(2001))
+            routersocket = connect(2001)
             secureroutersocket = SecureSerializer(routersocket,key)
             
             usersockets = IO[]
 
             while length(usersockets)<N
-                socket = Socket(accept(servers))
+                socket = accept(servers)
                 push!(usersockets,SecureSerializer(socket,key))
             end
 
@@ -63,7 +64,7 @@ N = 2
 
     @async let
         @show "User 1"
-        usersocket = Socket(connect(2000))
+        usersocket = connect(2000)
         securesocket = SecureSerializer(usersocket,key)
 
         sroutersocket = SecureSerializer(securesocket,key)
@@ -76,7 +77,7 @@ N = 2
 
     @async let
         @show "User 2"
-        usersocket = Socket(connect(2000))
+        usersocket = connect(2000)
         securesocket = SecureSerializer(usersocket,key)
         
         sroutersocket = SecureSerializer(securesocket,key)
