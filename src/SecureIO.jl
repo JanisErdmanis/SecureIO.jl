@@ -66,16 +66,10 @@ end
 
 function getstr(msg)
     io = IOBuffer()
-    #Serialization.serialize(io,msg)
     Serialization.serialize(io,msg)
-    #serialize(io,msg)
     plaintext = take!(io)
     return plaintext
 end
-
-### So I have two serialize and two deserialize methods for IOBuffer. 
-#serialize(s::IOBuffer,data::Array) = write(s,data)
-#deserialize(s::IOBuffer) = take!(s)
 
 function serialize(s::SecureSerializer,msg,size)
     plaintext = getstr(msg)
@@ -119,6 +113,6 @@ function deserialize(s::SecureSerializer)
     return msg
 end
 
-export SecureSerializer, serialize, deserialize, Socket
+export Socket, SecureSerializer, serialize, deserialize
 
 end # module
