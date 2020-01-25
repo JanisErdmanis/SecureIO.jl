@@ -57,8 +57,6 @@ N = 2
         end
     end
 
-    sleep(1)
-
     @async let
         @show "User 1"
         usersocket = connect(2000)
@@ -71,8 +69,6 @@ N = 2
         @async serialize(sroutersocket,"Hello user 1")
         @show deserialize(sroutersocket)
     end
-
-    sleep(1)
 
     @async let
         @show "User 2"
