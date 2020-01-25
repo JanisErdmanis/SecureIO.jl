@@ -1,13 +1,7 @@
 using SecureIO
 using Multiplexers
 using Sockets
-
-import Sockets.TCPSocket
-import Serialization
-
-# The part necessary to interact with a foreign sockets. 
-import SecureIO.SecureSocket
-SecureSocket(socket::TCPSocket,key) = SecureSocket(Socket(socket,Serialization.serialize,Serialization.deserialize),key)
+using Serialization
 
 key = 12434434
 N = 2
@@ -29,6 +23,7 @@ N = 2
 
             for i in 1:N
                 serialize(susersockets[i],"A secure message from the router")
+
                 @show deserialize(susersockets[i])
                 
                 @async serialize(susersockets[i],"Hello from router")
@@ -62,6 +57,8 @@ N = 2
         end
     end
 
+    sleep(1)
+
     @async let
         @show "User 1"
         usersocket = connect(2000)
@@ -74,6 +71,8 @@ N = 2
         @async serialize(sroutersocket,"Hello user 1")
         @show deserialize(sroutersocket)
     end
+
+    sleep(1)
 
     @async let
         @show "User 2"
