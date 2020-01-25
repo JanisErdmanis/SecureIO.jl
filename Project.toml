@@ -1,7 +1,7 @@
 name = "SecureIO"
 uuid = "ee77041e-65ec-469d-b516-892ca52996d6"
 authors = ["akels <akels14@gmail.com>"]
-version = "0.2.0"
+version = "0.3.0"
 
 [deps]
 Nettle = "49dea1ee-f6fa-5aa6-9a11-8816cee7d4b9"
